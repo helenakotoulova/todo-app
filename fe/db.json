@@ -1,0 +1,16 @@
+{
+  "todos": [
+    {
+      "text": "Read more often",
+      "id": "e8DcybsXIIx5i7AlztkYH",
+      "completed": false,
+      "createdDate": 1674059303954
+    },
+    {
+      "text": "Learn Typescript",
+      "id": "Gw7ivi0W1QRg8bASmP7YY",
+      "completed": false,
+      "createdDate": 1685088570508
+    }
+  ]
+}

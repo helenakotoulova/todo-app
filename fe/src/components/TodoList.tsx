@@ -6,7 +6,9 @@ import { Checkbox, Divider, Paper } from "@mui/material";
 import { FC, useState } from "react";
 import styled from "styled-components";
 import { useAppDispatch } from "../store/hooks";
-import { changeTodoStatus, deleteTodo, editTodo } from "../store/todos-actions";
+
+import { deleteTodo } from "../store/thunks/deleteTodo";
+import { editTodo } from "../store/thunks/editTodo";
 import { Todo } from "../store/todos-slice";
 import { StyledIconButton } from "./StyledComponents/StyledIconButton";
 import { TodoItem } from "./TodoItem";
@@ -62,13 +64,9 @@ export const TodoList: FC<Props> = (props) => {
     dispatch(deleteTodo(id));
   };
 
-  const editHandler = (text: string, id: string) => {
-    dispatch(editTodo(text, id));
+  const editHandler = (editedTodo: Todo) => {
+    dispatch(editTodo(editedTodo));
     setEditId(null);
-  };
-
-  const changeTodoStatusHandler = (todoId: string, completed: boolean) => {
-    dispatch(changeTodoStatus(todoId, completed));
   };
 
   return (
@@ -91,17 +89,19 @@ export const TodoList: FC<Props> = (props) => {
                   </StyledIconButton>
                 }
                 onChange={() =>
-                  changeTodoStatusHandler(todo.id, todo.completed)
+                  editHandler({ ...todo, completed: !todo.completed })
                 }
                 checked={todo.completed}
               />
               {editId === todo.id ? (
                 <TodoItem
                   todoText={todo.text}
-                  onEdit={(text) => editHandler(text, todo.id)}
+                  onEdit={(text) => editHandler({ ...todo, text })}
                 />
               ) : (
-                <StyledTodoName>{todo.text}</StyledTodoName>
+                <StyledTodoName onDoubleClick={() => setEditId(todo.id)}>
+                  {todo.text}
+                </StyledTodoName>
               )}
               <StyledActions>
                 <StyledIconButton

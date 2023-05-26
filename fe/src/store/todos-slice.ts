@@ -1,4 +1,9 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { RootState } from ".";
+import { addTodo } from "./thunks/addTodo";
+import { deleteTodo } from "./thunks/deleteTodo";
+import { editTodo } from "./thunks/editTodo";
+import { getAllTodos } from "./thunks/getAllTodos";
 
 export interface Todo {
   id: string;
@@ -7,59 +12,46 @@ export interface Todo {
   createdDate: number;
 }
 
+export type TodoForUpdate = Partial<Todo> & Pick<Todo, "id">;
+
 export interface TodosState {
-  loading: boolean;
-  error: string | null;
-  data: Todo[];
+  todos: Todo[];
 }
 
 const initialState: TodosState = {
-  loading: false,
-  error: null,
-  data: [] as Todo[],
+  todos: [] as Todo[],
 };
 
 const todosSlice = createSlice({
   name: "todos",
   initialState,
-  reducers: {
-    setAllTodos: (state, action: PayloadAction<{ todosData: Todo[] }>) => {
-      return { data: action.payload.todosData, loading: false, error: null };
-    },
-    setLoading: (state) => {
-      return { data: [], loading: true, error: null };
-    },
-    setError: (state, action: PayloadAction<{ error: string }>) => {
-      return { data: [], loading: false, error: action.payload.error };
-    },
-    deleteTodo: (state, action: PayloadAction<{ id: string }>) => {
-      state.data = state.data.filter((todo) => todo.id !== action.payload.id);
-    },
-    addTodo: (state, action: PayloadAction<{ todo: Todo }>) => {
-      state.data.unshift(action.payload.todo);
-    },
-    editTodo: (state, action: PayloadAction<{ todo: Todo }>) => {
-      const todo = state.data.find(
-        (todo) => todo.id === action.payload.todo.id
-      );
-      if (todo === undefined) {
-        state.error = "An error occurred - could not find the edited todo.";
-      } else {
-        todo.text = action.payload.todo.text;
-      }
-    },
-    changeTodoStatus: (state, action: PayloadAction<{ todo: Todo }>) => {
-      const todo = state.data.find(
-        (todo) => todo.id === action.payload.todo.id
-      );
-      if (todo === undefined) {
-        state.error = "An error occurred - could not find the edited todo.";
-      } else {
-        todo.completed = !todo.completed;
-      }
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(
+        getAllTodos.fulfilled,
+        (state, action: PayloadAction<Todo[]>) => {
+          state.todos = action.payload;
+        }
+      )
+      .addCase(addTodo.fulfilled, (state, action: PayloadAction<Todo>) => {
+        state.todos.push(action.payload);
+      })
+      .addCase(
+        deleteTodo.fulfilled,
+        (state, action: PayloadAction<string | undefined>) => {
+          state.todos = state.todos.filter(
+            (todo) => todo.id !== action.payload
+          );
+        }
+      )
+      .addCase(editTodo.fulfilled, (state, action: PayloadAction<Todo>) => {
+        state.todos = state.todos.map((todo) =>
+          todo.id === action.payload.id ? action.payload : todo
+        );
+      });
   },
 });
 
-export const todosActions = todosSlice.actions;
-export default todosSlice;
+export const selectTodos = (state: RootState) => state.todos;
+export default todosSlice.reducer;

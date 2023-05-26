@@ -6,7 +6,10 @@ import { Form } from "./components/Form";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { TodoList } from "./components/TodoList";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { changeTodoStatus, getAllTodosData } from "./store/todos-actions";
+import { selectNotifications } from "./store/notification-slice";
+import { editTodo } from "./store/thunks/editTodo";
+import { getAllTodos } from "./store/thunks/getAllTodos";
+import { selectTodos } from "./store/todos-slice";
 
 const StyledSection = styled.div`
   min-width: 100vw;
@@ -20,31 +23,36 @@ const StyledSection = styled.div`
 `;
 
 export const statuses = ["All", "Completed", "Incomplete"] as const;
-export type Status = typeof statuses[number];
+export type Status = (typeof statuses)[number];
+
+const useGetAllTodos = () => {
+  const {
+    todos = [], // pridano, protoze pokud nefunguje server, tak se vraci undefined misto prazdneho arraye
+  } = useAppSelector(selectTodos);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(getAllTodos());
+  }, [dispatch]);
+
+  return todos;
+};
 
 export const App = () => {
-  const {
-    data: todos,
-    loading,
-    error,
-  } = useAppSelector((state) => state.todos);
+  const { loading, error } = useAppSelector(selectNotifications);
   const dispatch = useAppDispatch();
+  const todos = useGetAllTodos();
   const [status, setStatus] = useState<Status>("All");
 
   const selectHandler = () => {
-    if (todos.every((todo) => todo.completed)) {
-      todos.forEach((todo) => dispatch(changeTodoStatus(todo.id, true)));
-    } else {
-      const incompleteTodos = todos.filter((todo) => !todo.completed);
-      incompleteTodos.forEach((todo) =>
-        dispatch(changeTodoStatus(todo.id, todo.completed))
-      );
-    }
-  };
+    const completedStatus = todos.every((todo) => todo.completed);
+    const updatedTodos = todos.map((todo) => ({
+      ...todo,
+      completed: !completedStatus,
+    }));
 
-  useEffect(() => {
-    dispatch(getAllTodosData());
-  }, [dispatch]);
+    updatedTodos.forEach((todo) => dispatch(editTodo(todo)));
+  };
 
   return (
     <StyledSection>
@@ -58,7 +66,7 @@ export const App = () => {
       {error && (
         <ErrorNotification
           errorMessage={error}
-          onRetry={() => dispatch(getAllTodosData())}
+          onRetry={() => dispatch(getAllTodos())}
         />
       )}
       {!loading && !error && (

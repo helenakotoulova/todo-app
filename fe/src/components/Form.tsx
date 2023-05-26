@@ -3,7 +3,8 @@ import { Button, Checkbox, InputBase, Paper } from "@mui/material";
 import { FC, useState } from "react";
 import styled from "styled-components";
 import { useAppDispatch } from "../store/hooks";
-import { postTodosData } from "../store/todos-actions";
+
+import { addTodo } from "../store/thunks/addTodo";
 import { StyledIconButton } from "./StyledComponents/StyledIconButton";
 
 const StyledPaper = styled(Paper)`
@@ -35,7 +36,7 @@ export const Form: FC<Props> = (props) => {
   const dispatch = useAppDispatch();
 
   const addTodoHandler = () => {
-    dispatch(postTodosData(value));
+    dispatch(addTodo(value));
     setValue("");
   };
 
@@ -66,6 +67,11 @@ export const Form: FC<Props> = (props) => {
         placeholder="Add a new todo"
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            addTodoHandler();
+          }
+        }}
       />
       <StyledButton onClick={addTodoHandler} variant="contained">
         Add new

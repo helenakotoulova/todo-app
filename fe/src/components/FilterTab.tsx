@@ -3,7 +3,8 @@ import { FC } from "react";
 import styled from "styled-components";
 import { Status, statuses } from "../App";
 import { useAppDispatch } from "../store/hooks";
-import { deleteTodo } from "../store/todos-actions";
+
+import { deleteTodo } from "../store/thunks/deleteTodo";
 import { Todo } from "../store/todos-slice";
 
 const StyledButton = styled(Button)`
